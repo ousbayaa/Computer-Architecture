@@ -1,5 +1,9 @@
 """CPU functionality."""
 
+## LDI IS SAVE REGISTER
+## PRN IS PRINT REGISTER
+
+
 import sys
 
 class CPU:
