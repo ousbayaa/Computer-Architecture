@@ -18,6 +18,9 @@ class CPU:
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
+
+        # self.POP = 
+        # self.PUSH =
     
     def ram_read(self, mar):
         return self.ram[mar] # memory address register
@@ -29,6 +32,23 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
+
+        if len(sys.argv) != 2:
+            print("usage: ls8.py filename")
+            sys.exit(1)
+        
+        try:
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    value = line.split("#")[0].strip()
+                    if value == '':
+                        continue
+                    v = int(value, 2)
+                    self.ram[address] = v
+                    address += 1
+        except FileNotFoundError:
+            print(f"Error {sys.argv[1]}")
+            sys.exit(1)
 
         # For now, we've just hardcoded a program:
 
