@@ -16,6 +16,7 @@ class CPU:
         self.reg = [0] * 8 # fixed size, max size of each reg
         self.pc = 0 # programme counter
         self.sp = 7
+        self.FL = 0
 
         self.LDI = 0b10000010
         self.PRN = 0b01000111
@@ -26,7 +27,11 @@ class CPU:
         self.CALL = 0b01010000
         self.RET = 0b00010001
         self.ADD = 0b10100000
-    
+        self.CMP = 0b10100111
+        self.JMP = 0b01010100
+        self.JEQ = 0b01010101
+        self.JNE = 0b01010110
+
     def ram_read(self, mar):
         return self.ram[mar] # memory address register
 
@@ -144,5 +149,25 @@ class CPU:
                 old_pc = self.ram[self.reg[self.sp]]
                 self.reg[self.sp] = self.reg[self.sp] + 1
                 self.pc = old_pc
+            elif IR == self.CMP:
+                if self.reg[operand_a] > self.reg[operand_b]:
+                    self.FL = 0b00000010
+                elif self.reg[operand_a] < self.reg[operand_b]:
+                    self.FL = 0b00000100
+                else:
+                    self.FL = 0b00000001
+                self.pc += 3
+            elif IR == self.JMP:
+                self.pc = self.reg[operand_a]
+            elif IR == self.JEQ:
+                if self.FL == 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif IR == self.JNE:
+                if self.FL != 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
             else:
                 break
