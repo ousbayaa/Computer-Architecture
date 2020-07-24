@@ -14,14 +14,14 @@ class CPU:
         self.ram = [0] * 256 # bytes of mem
         self.reg = [0] * 8 # fixed size, max size of each reg
         self.pc = 0 # programme counter
+        self.sp = 0
 
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
         self.MUL = 0b10100010
-
-        # self.POP = 
-        # self.PUSH =
+        self.POP = 0b01000110
+        self.PUSH = 0b01000101
     
     def ram_read(self, mar):
         return self.ram[mar] # memory address register
@@ -118,5 +118,16 @@ class CPU:
                 value = (self.ram_read(operand_a) * self.ram_read(operand_b)) & 0xFF
                 self.ram_write(operand_a, value)
                 self.pc += 3
+            elif IR == self.POP:
+                value = self.ram_read(self.sp)
+                self.ram_write(operand_a, value)
+                self.sp += 1
+                self.pc += 2
+            elif IR == self.PUSH:
+                self.sp -= 1
+                self.sp &= 0xff
+                value = self.ram_read(operand_a)
+                self.ram_write(self.sp, value)
+                self.pc += 2
             else:
                 break
