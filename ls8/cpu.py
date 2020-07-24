@@ -6,6 +6,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
@@ -14,7 +15,7 @@ class CPU:
         self.ram = [0] * 256 # bytes of mem
         self.reg = [0] * 8 # fixed size, max size of each reg
         self.pc = 0 # programme counter
-        self.sp = 0
+        self.sp = 7
 
         self.LDI = 0b10000010
         self.PRN = 0b01000111
@@ -22,6 +23,9 @@ class CPU:
         self.MUL = 0b10100010
         self.POP = 0b01000110
         self.PUSH = 0b01000101
+        self.CALL = 0b01010000
+        self.RET = 0b00010001
+        self.ADD = 0b10100000
     
     def ram_read(self, mar):
         return self.ram[mar] # memory address register
@@ -102,6 +106,7 @@ class CPU:
         IR = 0
 
         while True:
+            # self.trace()
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -109,25 +114,35 @@ class CPU:
             if IR == self.HLT:
                 exit()
             elif IR == self.LDI: #Load value into register
-                self.ram_write(operand_a, operand_b)
+                self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.pc + 2)
                 self.pc += 3
             elif IR == self.PRN: # Print
-                print(self.ram_read(operand_a))
+                print(self.reg[operand_a])
                 self.pc += 2
             elif IR == self.MUL: # Multiple
-                value = (self.ram_read(operand_a) * self.ram_read(operand_b)) & 0xFF
-                self.ram_write(operand_a, value)
+                value = (self.reg[operand_a] * self.reg[operand_b]) & 0xFF
+                self.reg[operand_a] = value
                 self.pc += 3
-            elif IR == self.POP:
-                value = self.ram_read(self.sp)
-                self.ram_write(operand_a, value)
-                self.sp += 1
+            elif IR == self.POP: # Pop from stack
+                value = self.ram_read(self.reg[self.sp])
+                self.reg[self.sp] = self.reg[self.sp] + 1
+                self.reg[operand_a] = value
                 self.pc += 2
-            elif IR == self.PUSH:
-                self.sp -= 1
-                self.sp &= 0xff
-                value = self.ram_read(operand_a)
-                self.ram_write(self.sp, value)
+            elif IR == self.PUSH: # Push to stack
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = self.reg[operand_a]
                 self.pc += 2
+            elif IR == self.ADD: # Add 2 numbers
+                value = (self.reg[operand_a] + self.reg[operand_b]) & 0xFF
+                self.reg[operand_a] = value
+                self.pc += 3
+            elif IR == self.CALL: # Go to subroutine
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = self.pc + 2
+                self.pc = self.reg[self.ram[self.pc + 1]]
+            elif IR == self.RET: # return to original place in pc
+                old_pc = self.ram[self.reg[self.sp]]
+                self.reg[self.sp] = self.reg[self.sp] + 1
+                self.pc = old_pc
             else:
                 break
